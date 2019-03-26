@@ -1,0 +1,1 @@
+An implementation of tp_maps using SDL to create the GL window, compatible with Emscripten.
