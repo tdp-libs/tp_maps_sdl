@@ -31,6 +31,12 @@ public:
   //! Called to queue a refresh
   void update() override;
 
+  //################################################################################################
+  void setRelativeMouseMode(bool enabled) override;
+
+  //################################################################################################
+  bool relativeMouseMode() const override;
+
 private:
   struct Private;
   Private* d;

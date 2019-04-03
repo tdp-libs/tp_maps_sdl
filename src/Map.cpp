@@ -285,4 +285,17 @@ void Map::update()
   d->paint = true;
 }
 
+//##################################################################################################
+void Map::setRelativeMouseMode(bool enabled)
+{
+  SDL_SetRelativeMouseMode(enabled?SDL_TRUE:SDL_FALSE);
+}
+
+//##################################################################################################
+bool Map::relativeMouseMode() const
+{
+  return SDL_GetRelativeMouseMode() == SDL_TRUE;
+}
+
+
 }
