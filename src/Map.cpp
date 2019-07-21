@@ -171,7 +171,7 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
   d(new Private(this))
 {
 #ifdef EMSCRIPTEN
-  SDL_Renderer *renderer = NULL;
+  SDL_Renderer *renderer = nullptr;
   SDL_CreateWindowAndRenderer(512, 512, SDL_WINDOW_OPENGL, &d->window, &renderer);
 #else
   if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0)
