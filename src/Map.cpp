@@ -181,6 +181,7 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
   }
 
   // Use a core profile setup.
+#if 1
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -188,10 +189,17 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+#endif
 
-  //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-  //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+#if 1
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+
+  //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+#endif
 
   if(fullScreen)
   {
