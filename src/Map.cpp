@@ -91,7 +91,7 @@ struct Map::Private
       case SDL_MOUSEMOTION: //----------------------------------------------------------------------
       {
         tp_maps::MouseEvent e(tp_maps::MouseEventType::Move);
-        mousePos = {event.motion.x, event.motion.y};        
+        mousePos = {event.motion.x, event.motion.y};
         e.pos = mousePos;
         e.posDelta = {event.motion.xrel, event.motion.yrel};
         q->mouseEvent(e);
@@ -180,27 +180,6 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     return;
   }
 
-  // Use a core profile setup.
-#if 1
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-#endif
-
-#if 1
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-
-  //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-#endif
-
   if(fullScreen)
   {
     d->window = SDL_CreateWindow(title.c_str(),
@@ -227,7 +206,34 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     return;
   }
 
-  d->context = SDL_GL_CreateContext(d->window);
+  // Try OpenGL 3.3 first this is our prefered configuration.
+  if(!d->context)
+  {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+    d->context = SDL_GL_CreateContext(d->window);
+  }
+
+  // If we fail to get a context try 2.1
+  if(!d->context)
+  {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+    d->context = SDL_GL_CreateContext(d->window);
+  }
+
   SDL_GL_SetSwapInterval(1);
 #endif
 
