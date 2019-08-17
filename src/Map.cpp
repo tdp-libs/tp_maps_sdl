@@ -218,6 +218,8 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
     d->context = SDL_GL_CreateContext(d->window);
+    setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_330);
+    tpDebug() << "VERSION_330";
   }
 
   // If we fail to get a context try 2.1
@@ -232,6 +234,8 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
     d->context = SDL_GL_CreateContext(d->window);
+    setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_120);
+    tpDebug() << "VERSION_120";
   }
 
   SDL_GL_SetSwapInterval(1);
