@@ -152,7 +152,7 @@ struct Map::Private
     {
       animationTimeMS = t+8;
       q->makeCurrent();
-      q->animate(t);
+      q->animate(double(t));
     }
 
     if(paint)
