@@ -157,6 +157,11 @@ struct Map::Private
 
     if(paint)
     {
+#if 0
+  static tp_utils::ElapsedTimer t;
+  auto a=t.restart();
+  TP_CLEANUP([&]{tpWarning() << "External: " << a << " Internal:" << t.restart();});
+#endif
       paint = false;
       q->makeCurrent();
       q->paintGL();
@@ -236,7 +241,7 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_120);
   }
 
-  SDL_GL_SetSwapInterval(1);
+  SDL_GL_SetSwapInterval(-1);
 #endif
 
   initializeGL();
@@ -274,7 +279,7 @@ void Map::exec()
   while(!d->quitting)
   {
     processEvents();
-    SDL_Delay(2);
+    SDL_Delay(16);
   }
 #endif
 }
