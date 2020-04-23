@@ -168,6 +168,51 @@ struct Map::Private
       SDL_GL_SwapWindow(window);
     }
   }
+
+  //################################################################################################
+  void tryMakeGL3_3()
+  {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+    context = SDL_GL_CreateContext(window);
+    q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_330);
+  }
+
+  //################################################################################################
+  void tryMakeGL2_1()
+  {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+    context = SDL_GL_CreateContext(window);
+    q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_120);
+  }
+
+  //################################################################################################
+  void tryMakeGLES2()
+  {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+    context = SDL_GL_CreateContext(window);
+    q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_100_ES);
+  }
 };
 
 //##################################################################################################
@@ -211,35 +256,13 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     return;
   }
 
-  // Try OpenGL 3.3 first this is our prefered configuration.
-  if(!d->context)
-  {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#  if defined(TP_GLES2)
+  d->tryMakeGLES2();
+#  endif
 
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-
-    d->context = SDL_GL_CreateContext(d->window);
-    setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_330);
-  }
-
-  // If we fail to get a context try 2.1
-  if(!d->context)
-  {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-
-    d->context = SDL_GL_CreateContext(d->window);
-    setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_120);
-  }
+  if(!d->context)d->tryMakeGL3_3();
+  if(!d->context)d->tryMakeGL2_1();
+  if(!d->context)d->tryMakeGLES2();
 
   SDL_GL_SetSwapInterval(-1);
 #endif
