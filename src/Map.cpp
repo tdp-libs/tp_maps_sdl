@@ -6,14 +6,6 @@
 #include "tp_utils/TimeUtils.h"
 #include "tp_utils/DebugUtils.h"
 
-#ifdef EMSCRIPTEN
-#include "SDL.h"
-#include <SDL_image.h>
-#include "emscripten.h"
-#else
-#include <SDL2/SDL.h>
-#endif
-
 namespace tp_maps_sdl
 {
 //##################################################################################################
@@ -36,14 +28,6 @@ struct Map::Private
   {
 
   }
-
-#ifdef EMSCRIPTEN
-  //################################################################################################
-  static void updateCallback(void* opaque)
-  {
-    static_cast<Private*>(opaque)->update();
-  }
-#endif
 
   //################################################################################################
   void update()
@@ -141,6 +125,24 @@ struct Map::Private
         break;
       }
 
+      case SDL_TEXTINPUT: //------------------------------------------------------------------------
+      {
+        tp_maps::TextInputEvent e;
+        e.text = event.text.text;
+        q->textInputEvent(e);
+        break;
+      }
+
+      case SDL_TEXTEDITING: //----------------------------------------------------------------------
+      {
+        tp_maps::TextEditingEvent e;
+        e.text           = event.edit.text;
+        e.cursor         = event.edit.start;
+        e.selectionLength = event.edit.length;
+        q->textEditingEvent(e);
+        break;
+      }
+
       default: //-----------------------------------------------------------------------------------
       {
         break;
@@ -157,11 +159,6 @@ struct Map::Private
 
     if(paint)
     {
-#if 0
-  static tp_utils::ElapsedTimer t;
-  auto a=t.restart();
-  TP_CLEANUP([&]{tpWarning() << "External: " << a << " Internal:" << t.restart();});
-#endif
       paint = false;
       q->makeCurrent();
       q->paintGL();
@@ -220,16 +217,20 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
   tp_maps::Map(enableDepthBuffer),
   d(new Private(this))
 {
-#ifdef EMSCRIPTEN
-  SDL_Renderer *renderer = nullptr;
-  SDL_CreateWindowAndRenderer(512, 512, SDL_WINDOW_OPENGL, &d->window, &renderer);
-#else
   if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0)
   {
     tpWarning() << "Failed to initialize SDL: " << SDL_GetError();
     return;
   }
 
+#if defined(TP_ANDROID) || defined(TP_IOS)
+    d->window = SDL_CreateWindow(title.c_str(),
+                                 SDL_WINDOWPOS_UNDEFINED,
+                                 SDL_WINDOWPOS_UNDEFINED,
+                                 512,
+                                 512,
+                                 SDL_WINDOW_OPENGL);
+#else
   if(fullScreen)
   {
     d->window = SDL_CreateWindow(title.c_str(),
@@ -249,6 +250,7 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
                                  512,
                                  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
   }
+#endif
 
   if(!d->window)
   {
@@ -265,7 +267,6 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
   if(!d->context)d->tryMakeGLES2();
 
   SDL_GL_SetSwapInterval(-1);
-#endif
 
   initializeGL();
 
@@ -282,13 +283,9 @@ Map::~Map()
 {
   preDelete();
 
-#ifdef EMSCRIPTEN
-
-#else
   SDL_GL_DeleteContext(d->context);
   SDL_DestroyWindow(d->window);
   SDL_Quit();
-#endif
 
   delete d;
 }
@@ -296,25 +293,17 @@ Map::~Map()
 //##################################################################################################
 void Map::exec()
 {
-#ifdef EMSCRIPTEN
-  emscripten_set_main_loop_arg(Private::updateCallback, d, 20, 1);
-#else
   while(!d->quitting)
   {
     processEvents();
     SDL_Delay(16);
   }
-#endif
 }
 
 //##################################################################################################
 void Map::processEvents()
 {
-#ifdef EMSCRIPTEN
-  tpWarning() << "Error Map::processEvents Does not work with Emscripten, use exec()";
-#else
   d->update();
-#endif
 }
 
 //##################################################################################################
@@ -339,6 +328,18 @@ void Map::setRelativeMouseMode(bool enabled)
 bool Map::relativeMouseMode() const
 {
   return SDL_GetRelativeMouseMode() == SDL_TRUE;
+}
+
+//##################################################################################################
+void Map::startTextInput()
+{
+  SDL_StartTextInput();
+}
+
+//##################################################################################################
+void Map::stopTextInput()
+{
+  SDL_StopTextInput();
 }
 
 

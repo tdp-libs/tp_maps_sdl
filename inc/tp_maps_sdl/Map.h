@@ -5,6 +5,9 @@
 
 #include "tp_maps/Map.h"
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_main.h>
+
 namespace tp_maps_sdl
 {
 
@@ -36,6 +39,12 @@ public:
 
   //################################################################################################
   bool relativeMouseMode() const override;
+
+  //################################################################################################
+  void startTextInput() override;
+
+  //################################################################################################
+  void stopTextInput() override;
 
 private:
   struct Private;
