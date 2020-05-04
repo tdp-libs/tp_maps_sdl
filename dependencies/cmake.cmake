@@ -7,3 +7,4 @@ else()
 endif()
 
 list(APPEND TP_LIBRARIES "-lSDL2")
+list(APPEND TP_LIBRARIES "-lSDL2_image")
