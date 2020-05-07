@@ -262,8 +262,10 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
   d->tryMakeGLES2();
 #  endif
 
+#if !defined(TP_ANDROID) && !defined(TP_IOS)
   if(!d->context)d->tryMakeGL3_3();
   if(!d->context)d->tryMakeGL2_1();
+#endif
   if(!d->context)d->tryMakeGLES2();
 
   SDL_GL_SetSwapInterval(-1);

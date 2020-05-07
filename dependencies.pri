@@ -14,5 +14,7 @@ TP_FRAMEWORKS += AVFoundation
 TP_FRAMEWORKS += AudioToolbox
 TP_FRAMEWORKS += QuartzCore
 TP_FRAMEWORKS += CoreMotion
+TP_FRAMEWORKS += ImageIO
+TP_FRAMEWORKS += MobileCoreServices
 
 TP_DEPENDENCIES += tp_maps_sdl/dependencies/
