@@ -1,5 +1,5 @@
 ## Example Programs
-* [example_maps_sdl2](https://github.com/tdp-libs/example_maps_sdl2) An example of how to use 
+* [power_house_app](https://github.com/tdp-libs/power_house_app) An example of how to use 
 tp_maps with SDL2.
 * [example_maps_fps](https://github.com/tdp-libs/example_maps_fps) An example of how to use tp_maps 
 with an FPS style controller in SDL2. 
