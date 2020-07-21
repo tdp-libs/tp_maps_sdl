@@ -167,6 +167,22 @@ struct Map::Private
   }
 
   //################################################################################################
+  void tryMakeGL4_1()
+  {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+    context = SDL_GL_CreateContext(window);
+    q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_410);
+  }
+
+  //################################################################################################
   void tryMakeGL3_3()
   {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -264,6 +280,10 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
 #  if defined(TP_GLES2)
   d->tryMakeGLES2();
 #  endif
+
+#if defined(TP_OSX)
+  if(!d->context)d->tryMakeGL4_1();
+#endif
 
 #if !defined(TP_ANDROID) && !defined(TP_IOS)
   if(!d->context)d->tryMakeGL3_3();
