@@ -167,23 +167,21 @@ struct Map::Private
   }
 
   //################################################################################################
-  void tryMakeGL4_1()
+  void opsForGL4_1()
   {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-    //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    context = SDL_GL_CreateContext(window);
     q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_410);
   }
 
   //################################################################################################
-  void tryMakeGL3_3()
+  void opsForGL3_3()
   {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -192,14 +190,12 @@ struct Map::Private
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
-    context = SDL_GL_CreateContext(window);
     q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_330);
   }
 
   //################################################################################################
-  void tryMakeGL2_1()
+  void opsForGL2_1()
   {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -208,25 +204,21 @@ struct Map::Private
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
-    context = SDL_GL_CreateContext(window);
     q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_120);
   }
 
   //################################################################################################
-  void tryMakeGLES2()
+  void opsForGLES2()
   {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
-    context = SDL_GL_CreateContext(window);
     q->setOpenGLProfile(tp_maps::OpenGLProfile::VERSION_100_ES);
   }
 };
@@ -242,6 +234,10 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     return;
   }
 
+  auto tryMakeWindow = [&](const auto& setWindowOps)
+  {
+    setWindowOps();
+
 #if defined(TP_ANDROID) || defined(TP_IOS)
     d->window = SDL_CreateWindow(title.c_str(),
                                  SDL_WINDOWPOS_UNDEFINED,
@@ -250,26 +246,52 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
                                  512,
                                  SDL_WINDOW_OPENGL);
 #else
-  if(fullScreen)
-  {
-    d->window = SDL_CreateWindow(title.c_str(),
-                                 SDL_WINDOWPOS_UNDEFINED,
-                                 SDL_WINDOWPOS_UNDEFINED,
-                                 512,
-                                 512,
-                                 SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-  }
-  else
-  {
-    d->window = SDL_CreateWindow(title.c_str(),
-                                 SDL_WINDOWPOS_UNDEFINED,
-                                 SDL_WINDOWPOS_UNDEFINED,
-                                 512,
-                                 512,
-                                 SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-  }
+    if(fullScreen)
+    {
+      d->window = SDL_CreateWindow(title.c_str(),
+                                   SDL_WINDOWPOS_UNDEFINED,
+                                   SDL_WINDOWPOS_UNDEFINED,
+                                   512,
+                                   512,
+                                   SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
+      SDL_SetRelativeMouseMode(SDL_TRUE);
+    }
+    else
+    {
+      d->window = SDL_CreateWindow(title.c_str(),
+                                   SDL_WINDOWPOS_UNDEFINED,
+                                   SDL_WINDOWPOS_UNDEFINED,
+                                   512,
+                                   512,
+                                   SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    }
 #endif
+
+    if(!d->window)
+      return;
+
+    d->context = SDL_GL_CreateContext(d->window);
+
+    if(!d->context)
+    {
+      SDL_DestroyWindow(d->window);
+      d->window = nullptr;
+    }
+  };
+
+#if defined(TP_GLES2)
+  tryMakeWindow([&]{d->opsForGLES2();});
+#endif
+
+#if defined(TP_OSX)
+  if(!d->context)tryMakeWindow([&]{d->opsForGL4_1();});
+#endif
+
+#if !defined(TP_ANDROID) && !defined(TP_IOS)
+  if(!d->context)tryMakeWindow([&]{d->opsForGL3_3();});
+  if(!d->context)tryMakeWindow([&]{d->opsForGL2_1();});
+#endif
+  if(!d->context)tryMakeWindow([&]{d->opsForGLES2();});
 
   if(!d->window)
   {
@@ -277,19 +299,11 @@ Map::Map(bool enableDepthBuffer, bool fullScreen, const std::string& title):
     return;
   }
 
-#  if defined(TP_GLES2)
-  d->tryMakeGLES2();
-#  endif
-
-#if defined(TP_OSX)
-  if(!d->context)d->tryMakeGL4_1();
-#endif
-
-#if !defined(TP_ANDROID) && !defined(TP_IOS)
-  if(!d->context)d->tryMakeGL3_3();
-  if(!d->context)d->tryMakeGL2_1();
-#endif
-  if(!d->context)d->tryMakeGLES2();
+  if(!d->context)
+  {
+    tpWarning() << "Failed to create OpenGL context: " << SDL_GetError();
+    return;
+  }
 
   SDL_GL_SetSwapInterval(-1);
 
