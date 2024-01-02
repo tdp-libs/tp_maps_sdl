@@ -1,7 +1,7 @@
 #ifndef tp_maps_sdl_Globals_h
 #define tp_maps_sdl_Globals_h
 
-#include "tp_maps/textures/BasicTexture.h"
+#include "tp_maps/textures/BasicTexture.h" // IWYU pragma: keep
 
 #if defined(TP_MAPS_SDL_LIBRARY)
 #  define TP_MAPS_SDL_SHARED_EXPORT
@@ -16,7 +16,7 @@ namespace tp_maps_sdl
 {
 
 //##################################################################################################
-tp_maps::TextureData loadTextureFromResource(const std::string& path);
+tp_image_utils::ColorMap loadTextureFromResource(const std::string& path);
 
 }
 
